@@ -1,13 +1,18 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
-
-```{r}
+```{r, include=FALSE}
 # This is a so-called "R chunk" where you can write R code.
 
 date()
 
 ```
-The text continues here.
+Currently I feel busy, since I am doing this course along my work as a researcher. I expect to do better version control for my code and to have basic knowledge on how to do some statistical tests that I haven't previously done. I discovered the course through a course catalog and was immediately excited about the course. 
+
+_Exercise set 1 was mostly rehearsing for me. I have done almost every topic that was there in my work or previous courses._ 
+
+The RMarkdown practice is nice though. I will try to write my future reports also with Markdown. 
+
+## Linkki
+[My GitHub IODS project](https://github.com/HWejberg/IODS-project)
 
