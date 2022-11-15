@@ -1,10 +1,6 @@
 # Linear regression analysis
 
-*Describe the work you have done this week and summarize your learning.*
-
 I had a busy week so I am writing this half hour before DL. I knew most of the stuff previously, so I did not learn so much new. On sunday, I did exercise 2 and the data folder. Monday evening and tuesday morning I did rest of the analysis. I still have to work with understanding how to use GitHub, since I have a hard time on updating the course diary. 
-
-
 
 ```{r}
 date()
@@ -61,8 +57,10 @@ When we fit the model again with only significant coefficients, the median resid
 
 
 ```{r}
-par(mfrow = c(2,2)) + plot(my_model3, which = c(1, 2, 5))
+plot(my_model3, which = c(1, 2, 5))
 ```
+
+
 To do linear regression in a way that gives us good answers, some assumptions have to be met. These are 1) linear relationship between the explanatory and dependent variables, 2) residuals are independent and do not correlate with each other, 3) variance stays constants no matter the value of explanatory variable and lastly, 4) residuals are normally distributed. All of these can be assessed with the following three plots. 
 
 Residuals vs Fitted values shows us if there is outliers in the model and also whether the linearity assumption required for linear regression is fulfilled. It also shows if the residuals correlate with each other and whether the variance stays constant with different fitted values. Residuals are on the y-axis and x-axis has fitted values, which means the models expectation of points with different attitude points. The residuals seem to work as intended, since the large majority is around the horizontal band, which means that the error terms related to variance are quite equal. There are some outliers. The value of these are shown in numbers. It seems that some students with good attitudes managed to score quite low points. We can also see from this plot that residuals are independent and do not correlate with each other.
