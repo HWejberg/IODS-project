@@ -10,4 +10,76 @@
 date()
 ```
 
-Here we go again...
+First we download the data that we are about to analyse. There are 7 variables in equal number of columns. Number of observations is 166. It seems that the data describes students, who have scored different points on a test. In addition to information regarding the test taker, such as gender or age, there are also measurements on their attitude, whether they try to learn the subjects deeply, create a learning strategy and whether they only do shallow learning. 
+
+
+```{r}
+library(tidyverse)
+learning2014 <- read.csv("./data/learning2014.csv")
+
+print(dim(learning2014))
+print(str(learning2014))
+
+```
+From summary, we can see that the median age of test takers is 22, attitude is 3.2 out of 5, deep learning 3.6, learning strategy 3.2, surface learning 2.8 and points are 23. There are a lot more females in the course, 110 based on counting the strings with F. 
+
+```{r}
+summary(learning2014)
+sum(str_count(learning2014$gender, pattern = "F"))
+
+library(GGally)
+library(ggplot2)
+
+# create a more advanced plot matrix with ggpairs()
+p <- ggpairs(learning2014, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+p
+
+
+```
+From the top row of the plot, we can see that females and males have quite similar strategy and surface learning values. Ages differ more; females have a lot more outliers, which can be seen from the boxplot. More of the old participants are female. In attitude, females are more close to each other, whereas there are several males that have a bad starting attitude. Deep learning is in essence the same. Same applies to points.
+
+Regarding distributions, all else but age are pretty much normally distributed. Deep is skewed to the right and points has a small hill in the left of the distribution. This might be due to some limit of passing the course where students have aimed. Attitude and points have the highest absolute correlation in the sample. It is no surprise that this is a positive correlation. Unsurprisingly, surface learning and deep learning are negatively correlated with each other. Former is also negatively correlated with attitude and studying strategy. These where all the statistically significant correlations, which are marked with asterisks. This means that the correlation would be unlikely to emerge due to chance.
+
+```{r}
+
+my_model2 <- lm(points ~ attitude + stra + surf, data = learning2014) 
+summary(my_model2)
+
+```
+First, residuals tells us the error between our model and actual results. The smaller residuals, the less error there is between the model results and actual observed points. Estimates are calculations on how much, ceteris paribus, does change in one of the explanatory variables change the dependent variable. If attitude is increased by one points, it increases the points in the exam by 3.3952 according to model. Standard errors are calculated in order to calculate the t value, which can then be used to see if the coefficient is significant, which means that it is highly unlikely that it differs from zero due to chance. Only attitude has a significant relationship with points. 
+
+Residual standard error tells us exactly what the name implies: what is the standard deviation of residuals. Smaller is better. R-squared tells us how much of the variance of points does the model explain. In this case, our model explains about 20 % of variance. F-statistic is used to test whether any of the coefficients differ statistically significantly from 0. Since p-value < 0.001 in the F-statistic, we can reject the null hypothesis where none of the coefficients would have values differing from 0. 
+
+```{r}
+
+my_model3 <- lm(points ~ attitude, data = learning2014) 
+summary(my_model3)
+
+```
+
+When we fit the model again with only significant coefficients, the median residual decreases. All the coefficients are now statistically significant, and the R-squared did not decrease by much. The F-statistic has a higher value, which means that we can be even more certain that the model fits the data well. 
+
+
+```{r}
+par(mfrow = c(2,2)) + plot(my_model3, which = c(1, 2, 5))
+```
+To do linear regression in a way that gives us good answers, some assumptions have to be met. These are 1) linear relationship between the explanatory and dependent variables, 2) residuals are independent and do not correlate with each other, 3) variance stays constants no matter the value of explanatory variable and lastly, 4) residuals are normally distributed. All of these can be assessed with the following three plots. 
+
+Residuals vs Fitted values shows us if there is outliers in the model and also whether the linearity assumption required for linear regression is fulfilled. It also shows if the residuals correlate with each other and whether the variance stays constant with different fitted values. Residuals are on the y-axis and x-axis has fitted values, which means the models expectation of points with different attitude points. The residuals seem to work as intended, since the large majority is around the horizontal band, which means that the error terms related to variance are quite equal. There are some outliers. The value of these are shown in numbers. It seems that some students with good attitudes managed to score quite low points. We can also see from this plot that residuals are independent and do not correlate with each other.
+
+Normal Q-Q simply shows a line where it is possible to compare if residuals follow a normal distribution. Based on the plot, majority of the residuals in fact do follow normal distribution. The ones who do not are the same values as in the previous plot. All in all, the model is fine based on this. 
+
+Lastly, residuals vs leverage plot tells us how the coefficient would change if an observation was removed. In this plot, none of the observations are further than the Cook's distance. If there would be an observation beyond this distance, removing it would change the coefficient by an amount that is in the x-axis. 
+
+All in all, the model we chose fits the data quite well and improves our knowledge in how attitude affects the exam points. 
+
+
+
+
+
+
+
+
+
+
+
