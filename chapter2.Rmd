@@ -1,10 +1,10 @@
-# Insert chapter 2 title here
+# Linear regression analysis
 
 *Describe the work you have done this week and summarize your learning.*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+I had a busy week so I am writing this half hour before DL. I knew most of the stuff previously, so I did not learn so much new. On sunday, I did exercise 2 and the data folder. Monday evening and tuesday morning I did rest of the analysis. I still have to work with understanding how to use GitHub, since I have a hard time on updating the course diary. 
+
+
 
 ```{r}
 date()
