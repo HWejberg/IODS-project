@@ -1,0 +1,132 @@
+---
+title: "chapter3"
+author: "Henrik Wejberg"
+date: "2022-11-20"
+output: html_document
+---
+
+```{r, echo = FALSE}
+library(readr);library(dplyr);library(ggplot2)
+alc <- read_csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/alc.csv", show_col_types=FALSE)
+print(colnames(alc))
+
+```
+The data was collected to study how alcohol consumption affects students grades. Information relating to variable names can be found [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). Basically all the variables are different socioeconomic factors that could in theory affect the likelihood of a youngster drinking alcohol. 
+
+I will choose four variables to use as dependent variables for alcohol consumption. Firstly, I think that men drink more than women, so I will choose sex as my first dependent variable. Secondly, age probably affects this, since people can buy and drink legally after certain age. This is the second dependent variable I use. For the third variable, I choose famrel. I suspect that youngsters who do not get along with their family well end up drinking more alcohol under the bridge, since they do not want to spend time at home. Lastly, I choose goout which is going out with friends. Youngsters probably do not drink alone or at home, so going out with friends probably increases alcohol consumption. 
+
+```{r, echo = FALSE}
+g1 <- ggplot(data = alc, aes(x = high_use)) +
+  geom_bar()
+
+g1 + facet_wrap("sex")
+```
+
+
+It can be seen clearly from this plot that men have more high alcohol users than females.
+
+```{r, echo = FALSE}
+g2 <- ggplot(data = alc, aes(x = high_use)) +
+  geom_bar()
+
+g2 + facet_wrap("age")
+
+
+```
+
+
+It seems that age also matters. There is a significant leap from 16 to 17 in alcohol use. Only 22 years student seems to be high-users. It can be expected that one might be drinking, if he or she is still in high school at 22. Of course the n is very small, so we cannot make any certain conclusions from it. 
+
+
+
+```{r, echo = FALSE}
+g3 <- ggplot(data = alc, aes(x = high_use)) +
+  geom_bar()
+
+g3 + facet_wrap("famrel")
+```
+
+This plot could be summarised that the better the relations with family, the less likely a student will be a high user of alcohol. The decrease from 3-5 is proportionally very sound. 
+
+
+```{r, echo = FALSE}
+g4 <- ggplot(data = alc, aes(x = high_use)) +
+  geom_bar()
+
+g4 + facet_wrap("goout")
+```
+
+
+No surprises here either; more going out, more likely that the student consumes much alcohol. All in all, I would say that the plotted data supports my previously asserted hypothesis. Next, I will conduct logistic regression to assess whether the variables I choose are statistically significant with high odds ratios. 
+
+
+```{r, echo = FALSE}
+
+m <- glm(high_use ~ sex + age + famrel + goout, data = alc, family = "binomial")
+summary(m)
+
+
+```
+
+From the summary of the model, we can see some of the variables are in fact significant while others are not. Sex, going out and famrel all have very low p-values. This means that the high alcohol users and these variables are very likely connected with each other, since the possibility that the connection would be due to randomness is very small. Surprisingly for me, age is not a significant coefficient for high alcohol use. 
+
+```{r, echo = FALSE}
+# compute odds ratios (OR)
+OR <- coef(m) %>% exp
+
+# compute confidence intervals (CI)
+CI <- confint(m) %>% exp
+
+# print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+```
+Next we assess the odds ratios of the coefficients. If odds ratio is 1, then the variable in question does not affect the risk of dependent variable at all, since p/1-p is 1 if p is 0.5. From OR, we can see that sexM, which means a dummy variable for sex that is assigned for the male gender, is 2.7. This means that males are much more likely to be high alcohol users than females. Age has an OR of 1.14 but the confidence interval goes both lower than 1 and obviously higher than one. We can recall that age wasn't a significant coefficient, which can also be derived from this. If the confidence interval goes to both possible effects: increase and decrease of high alcohol use, then the effect of age on this variable is not probably significantly different from nothing, since it can go either way. Famrel has a 0.64 OR, which means that the higher the family relations, less likely is the high use of alcohol. Lastly, going out has an OR of 2.2, which means that the more a student goes out, more likely he is to be a high alcohol user. 
+
+```{r, echo = FALSE}
+# predict() the probability of high_use
+probabilities <- predict(m, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability > 0.5)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction)
+
+# initialize a plot of 'high_use' versus 'probability' in 'alc'
+g <- ggplot(alc, aes(x = probability, y = high_use, col = prediction))
+
+# define the geom as points and draw the plot
+g + geom_point()
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table() %>% addmargins()
+```
+Next we assess how well our prediction works. From the 2*2 table we can see, that prediction is correct with high_use in 239 times when both say FALSE and 50 times when both are TRUE. If we calculate the relative portions of these outcomes, the answer is 0.78. I think that the result is quite good. Our model can estimate the correct high use of alcohol with an accuracy of 0.78. This is much better than guessing, which would have an expected value of 0.5. 
+
+```{r, echo = FALSE}
+
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# compute the average number of wrong predictions in the (training) data
+loss_func(class = alc$high_use, prob = alc$probability)
+
+# K-fold cross-validation
+library(boot)
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+
+```
+I also conducted similar loss function assessment of my model compared to exercise 3. The modeling error in that one was about 0.22-0.23 when K was 10. This means that the sample is divided to 10 equal sized groups, where one is used for test data set at a time and others as a training set. All groups are used in both roles. 
+
+My model, as seen from the results, has a lower loss function between 0.21-0.22. It seems that I picked quite good predictors. If I had time, I would do the comparison of different logistic regression models, but unfortunately, I do not have the time. 
+
+
+
