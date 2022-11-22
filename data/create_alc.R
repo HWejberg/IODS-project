@@ -26,6 +26,11 @@ por <- read.table(url_por, sep = ";", header = TRUE)
 # look at the column names of both data sets
 colnames(math); colnames(por)
 
+# Exzploring
+str(math)
+
+# 33 variables with 395 observations. 
+
 # access the dplyr package
 library(dplyr)
 
@@ -37,6 +42,11 @@ join_cols <- setdiff(colnames(por), free_cols)
 
 # join the two data sets by the selected identifiers
 math_por <- inner_join(math, por, by = join_cols)
+
+# 
+str(math_por)
+
+# 370 observations and 39 variables after joining. 
 
 # look at the column names of the joined data set
 colnames(math_por)
