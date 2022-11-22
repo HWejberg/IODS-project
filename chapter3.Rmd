@@ -5,6 +5,8 @@ date: "2022-11-20"
 output: html_document
 ---
 
+# Logistic regression analysis
+
 ```{r, echo = FALSE}
 library(readr);library(dplyr);library(ggplot2)
 alc <- read_csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/alc.csv", show_col_types=FALSE)

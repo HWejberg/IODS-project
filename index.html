@@ -382,6 +382,8 @@ project</a>
 <li><a href="#linkki" id="toc-linkki">Linkki</a></li>
 </ul></li>
 <li><a href="#linear-regression-analysis" id="toc-linear-regression-analysis">Linear regression analysis</a></li>
+<li><a href="#logistic-regression-analysis" id="toc-logistic-regression-analysis">Logistic regression
+analysis</a></li>
 </ul>
 </div>
 
@@ -416,7 +418,7 @@ I did rest of the analysis. I still have to work with understanding how
 to use GitHub, since I have a hard time on updating the course
 diary.</p>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Tue Nov 22 08:40:53 2022&quot;</code></pre>
+<pre><code>## [1] &quot;Tue Nov 22 08:43:49 2022&quot;</code></pre>
 <p>First we download the data that we are about to analyse. There are 7
 variables in equal number of columns. Number of observations is 166. It
 seems that the data describes students, who have scored different points
@@ -595,6 +597,9 @@ coefficient by an amount that is in the x-axis.</p>
 <p>All in all, the model we chose fits the data quite well and improves
 our knowledge in how attitude affects the exam points.</p>
 <hr />
+</div>
+<div id="logistic-regression-analysis" class="section level1">
+<h1>Logistic regression analysis</h1>
 <pre><code>##  [1] &quot;school&quot;     &quot;sex&quot;        &quot;age&quot;        &quot;address&quot;    &quot;famsize&quot;   
 ##  [6] &quot;Pstatus&quot;    &quot;Medu&quot;       &quot;Fedu&quot;       &quot;Mjob&quot;       &quot;Fjob&quot;      
 ## [11] &quot;reason&quot;     &quot;guardian&quot;   &quot;traveltime&quot; &quot;studytime&quot;  &quot;schoolsup&quot; 
@@ -709,7 +714,7 @@ is quite good. Our model can estimate the correct high use of alcohol
 with an accuracy of 0.78. This is much better than guessing, which would
 have an expected value of 0.5.</p>
 <pre><code>## [1] 0.2189189</code></pre>
-<pre><code>## [1] 0.2297297</code></pre>
+<pre><code>## [1] 0.227027</code></pre>
 <p>I also conducted similar loss function assessment of my model
 compared to exercise 3. The modeling error in that one was about
 0.22-0.23 when K was 10. This means that the sample is divided to 10
