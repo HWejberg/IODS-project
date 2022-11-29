@@ -10,6 +10,7 @@ output: html_document
 # This is a code chunk in RStudio editor.
 # access the MASS package
 library(MASS)
+library(tidyverse)
 
 # load the data
 data("Boston")
@@ -55,7 +56,7 @@ summary(Boston)
 
 Correlation plot shows well what kind of variables have strong connections with each other. For example, index of accessibility to radial highways is positively correlated with non-retail business acres and nox emissions. It is likely that factories are constructed close to highways for ease of transport, which also leads to high emissions in these areas. Summary of the variables is not terribly interesting. It is worth while to point out that chas is a dummy variable, which explains the 0 value in all others than mean. 
 
-```{r}
+```{r, echo = FALSE}
 # center and standardize variables
 boston_scaled <- scale(Boston)
 
@@ -107,9 +108,14 @@ test <- dplyr::select(test, -crime)
 
 ```
 
-Standardize the dataset and print out summaries of the scaled data. How did the variables change? Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate). Use the quantiles as the break points in the categorical variable. Drop the old crime rate variable from the dataset. Divide the dataset to train and test sets, so that 80% of the data belongs to the train set. (0-2 points)
+We scaled the data so every variable would have a mean of 0. This is done by subtracting from every observation the variable mean of the same variable and dividing by the variables standard deviation. After this, as previously said, all variables have a mean of 0 and all variables have also negative values. Compared to pre-scaling, there wasn't every negative values since home values cannot be negative. 
 
-```{r}
+The later outputs show that we created quantiles for crime. All the observations have been divided equally to four groups, where crime rates differ inside the groups. The last two groups, which also have the most crime, has much more variance than the previous two, which can be seen from the "edge" values of the groups. 
+
+Training and test groups were also created by sampling 80 % of the data to training set and 20 % to test set. 
+
+
+```{r, echo = FALSE}
 # linear discriminant analysis
 lda.fit <- lda(crime ~ ., data = train)
 
@@ -131,14 +137,15 @@ lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0
 classes <- as.numeric(train$crime)
 
 # plot the lda results
-plot(lda.fit, dimen = 2)
+plot(lda.fit, dimen = 2, col = classes)
 lda.arrows(lda.fit, myscale = 1) 
 
 ```
 
-Fit the linear discriminant analysis on the train set. Use the categorical crime rate as the target variable and all the other variables in the dataset as predictor variables. Draw the LDA (bi)plot. (0-3 points)
+We use the training set to conduct linear discriminant analysis. We choose crime rate as target variable and assign all other variables in the training set as predictor variables. In group means we see what the mean values of other variables are in certain quantiles of crime levels. For example, there isn't as much crime in industry heavy areas, since variable zn is quite high in the areas where least crime happens. From the lda plot, we can see quite clearly that the areas can be divided to two groups based on the crime rate in different areas. 
 
-```{r}
+
+```{r, echo = FALSE}
 
 # predict classes with test data
 lda.pred <- predict(lda.fit, newdata = test)
@@ -147,25 +154,45 @@ lda.pred <- predict(lda.fit, newdata = test)
 table(correct = correct_classes, predicted = lda.pred$class)
 
 ```
-
-Save the crime categories from the test set and then remove the categorical crime variable from the test dataset. Then predict the classes with the LDA model on the test data. Cross tabulate the results with the crime categories from the test set. Comment on the results. (0-3 points)
-
+Previously, we created two data sets and from the test data set, we removed the crime variable and assigned it to other data frame. We can now use the lda.fit model to predict how well it predicts areas to correct quantiles regarding crime. As we can see from the results, it does the predictions quite well. No error on the clearly higher crime areas which are the last quintile with 31 observations. There is most error between the two first ones which is to be expected, since the quintiles range are so close to each other. 
 
 
+```{r, echo = FALSE}
+set.seed(123)
 
-Reload the Boston dataset and standardize the dataset (we did not do this in the Exercise Set, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. (0-4 points)
-Bonus: Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influential linear separators for the clusters? (0-2 points to compensate any loss of points from the above exercises)
+data("Boston")
 
-Super-Bonus: Run the code below for the (scaled) train data that you used to fit the LDA. The code creates a matrix product, which is a projection of the data points.
+Boston <- scale(Boston)
 
-model_predictors <- dplyr::select(train, -crime)
-# check the dimensions
-dim(model_predictors)
-dim(lda.fit$scaling)
-# matrix multiplication
-matrix_product <- as.matrix(model_predictors) %*% lda.fit$scaling
-matrix_product <- as.data.frame(matrix_product)
-Next, install and access the plotly package. Create a 3D plot (cool!) of the columns of the matrix product using the code below.
+# euclidean distance matrix
+dist_eu <- dist(Boston)
 
-plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers')
-Adjust the code: add argument color as a argument in the plot_ly() function. Set the color to be the crime classes of the train set. Draw another 3D plot where the color is defined by the clusters of the k-means. How do the plots differ? Are there any similarities? (0-3 points to compensate any loss of points from the above exercises)
+# look at the summary of the distances
+summary(dist_eu)
+
+# manhattan distance matrix
+dist_man <- dist(Boston, method = "manhattan")
+
+# look at the summary of the distances
+summary(dist_man)
+summary(dist_eu)
+
+# determine the number of clusters
+k_max <- 10
+
+# calculate the total within sum of squares
+twcss <- sapply(1:k_max, function(k){kmeans(Boston, k)$tot.withinss})
+
+# visualize the results
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+
+# k-means clustering
+km <- kmeans(Boston, centers = 2)
+
+# plot the Boston dataset with clusters
+pairs(Boston, col = km$cluster)
+```
+
+We calculated the total within sum of squares. From the literature we know that when the sum of squares drastically changes after changing the number of groups, then we should choose the number of groups were the drastic change happened. The greatest reduction is between 1:2, so we decided to use two groups. 
+
+From the second plot we can see how all the variables are divided to two groups. In most of the pairs, the red and black observations are clearly separated from each other. Based on this visual confirmation, we can say that the k-means groups increases our understanding of the data and help us make predictions. 
