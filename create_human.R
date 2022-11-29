@@ -17,3 +17,5 @@ gii <- gii %>% mutate("edu2F/edu2M" =`Population with Secondary Education (Femal
                       "labF / labM" = `Labour Force Participation Rate (Female)` / `Labour Force Participation Rate (Male)`)
 
 human <- inner_join(hd, gii, by = c("Country"))
+
+write.csv(human)
