@@ -1,21 +1,34 @@
 # Henrik Wejberg
-# Open data science 
+# Open data science
+# 5.12.2022
 
-hd <- read_csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/human_development.csv")
-gii <- read_csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/gender_inequality.csv", na = "..")
+human <- read.csv("data/human1.txt")
 
-str(hd)
-str(gii)
+library(dplyr)
 
-summary(hd)
-summary(gii)
+# This is a data about countries and their measured indicators for human development. You can find more about the variables from here:https://hdr.undp.org/system/files/documents//technical-notes-calculating-human-development-indices.pdf
+str(human)
+summary(human)
 
-# Didn't have time to do rename 
-rename(hd, "Country name" = "Country", "GNI" = "Gross National Income (GNI) per capita") 
+# There is 195 obs and 19 variables. We will first turn GNI as numeric, since R reads it as a character
+human$GNI <- gsub(",", "", human$GNI) |> as.numeric()
 
-gii <- gii %>% mutate("edu2F/edu2M" =`Population with Secondary Education (Female)`/`Population with Secondary Education (Male)`, 
-                      "labF / labM" = `Labour Force Participation Rate (Female)` / `Labour Force Participation Rate (Male)`)
+# We select only relevant variables for our future analysis
+human <- select(human, "Country", "Edu2.FM", "Labo.FM", "Edu.Exp", "Life.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
 
-human <- inner_join(hd, gii, by = c("Country"))
+# filter out all rows with NA values
+human <- filter(human, complete.cases(human) == TRUE)
 
-write.csv(human)
+# lets take the last 7 observations away so there is no more regions in the data, only countries.
+last <- nrow(human) - 7
+
+# choose everything until the last 7 observations
+human <- human[1:last, ]
+
+# I name every row with the country it is associated and remove country row
+rownames(human) <- human$Country
+human <- human[,-1]
+
+# I write this data to human.csv so it is in the right folder right away
+write.csv(human, file = "data/human.csv")
+
