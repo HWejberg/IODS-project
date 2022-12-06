@@ -94,14 +94,6 @@ Now the plot and results look much better! It seems that PC1 accounts for over h
 
 Second PC relates to females participation in parliaments and work outside of home. Nordic countries and Northern European countries rank highly on these, while Middle East countries have significantly different results. If we would like to have less variables or indexes, we could have a variable related maybe to GNI and to life expectancy and education and another one for females participation in work and democratic processes. 
 
-Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomena they relate to. (0-4 points)
-
-Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
-
-
-
-
-
 ### Multiple correspondence analysis
 
 ```{r, echo=FALSE}
@@ -118,7 +110,7 @@ tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open
 keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
 
 # select the 'keep_columns' to create a new dataset
-tea_time <- dplyr::select(tea, keep_columns)
+tea_time <- dplyr::select(tea, all_of(keep_columns))
 
 # look at the summaries and structure of the data
 summary(tea_time)
@@ -129,11 +121,10 @@ library(ggplot2)
 pivot_longer(tea_time, cols = everything()) %>% 
   ggplot(aes(value)) + facet_wrap("name", scales = "free") +
   geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
-
-
 ```
 
-Explore the data briefly: look at the structure and the dimensions of the data. Use View(tea) to browse its contents, and visualize the data.
+The data is related to how tea is enjoyed. There is a nice plot which shows the counts of different factor values. People consume tea mostly in chain stores. Sugar use is evenly distributed. Earl Grey is the mode of different teas. Many people drink tea outside of lunch. 
+
 
 ```{r}
 # multiple correspondence analysis
@@ -146,5 +137,7 @@ summary(mca)
 plot(mca, invisible=c("ind"), graph.type = "classic", habillage = "quali")
 
 ```
+Tea shop and unpackaged tea are far away from the origin, which means that they are not consumed very often. This can be seen from Dim 1. When these are coupled, they are also far away from origin in Dim 2. It is also rare to drink tea in itself or with lemon or milk. I do not do with what you drink the tea if you do not have any of these but some other stuff put in. Mostly tea is consumed with sugar, not after lunch, alone and the tea varieties are Earl Grey or Black tea. 
+
 
 Use Multiple Correspondence Analysis (MCA) on the tea data (or on just certain columns of the data, it is up to you!). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots. (0-4 points)
