@@ -5,6 +5,144 @@ date: "2022-12-05"
 output: html_document
 ---
 
+### Principal component analysis
+
+We will analyse today data from UNDP about variables that make the Human Development Index. The variables we use for analysis today are listed below the distribution analysis.
+
+```{r}
+human <- read.table("data/human.csv", header = TRUE, sep = ",", row.names = 1)
+
+# Access GGally
+library(GGally)
+
+# visualize the 'human_' variables
+ggpairs(human, proportions = "auto")
+
+# Access corrplot
+library(corrplot)
+
+# compute the correlation matrix and visualize it with corrplot
+cor(human) %>% corrplot()
+```
+Variable names:      
+"GNI" = Gross National Income per capita  
+"Life.Exp" = Life expectancy at birth  
+"Edu.Exp" = Expected years of schooling   
+"Mat.Mor" = Maternal mortality ratio  
+"Ado.Birth" = Adolescent birth rate  
+"Parli.F" = Percetange of female representatives in parliament  
+"Edu2.FM" = Proportion of females with at least secondary education / Proportion of males with at least secondary education  
+"Labo.FM" = Proportion of females in the labour force / Proportion of males in the labour force   
+
+The distributions depend significantly on the variable examined. For example, maternal mortality ratio couldn't be quite high in most of the countries. The mode is clearly on the left, where maternal mortality is very low. Most of the variables related to females equality in society, such as Edu2.FM and Labo.FM have modes lower than one, which means that generally females are offered less higher education and participate less to labour force. 
+
+Correlations do not offer any surprises. Edu2.FM has strong positive correlation with expected years of schooling and life expectancy. On the other hand, Edu2.FM has a strong negative correlation with maternal mortality ratio. Not suprisingly, Life expectancy has very strong negative correlation with Maternal mortality ratio and Adolescent birth rate. This is quite obvious, since high life expectancy must mean that not many women or children die in labour. 
+
+We conduct principal component analysis to see which variables explain most of the variance on the sample and are therefore probably the most important ones to keep for further analysis.
+
+```{r}
+# perform principal component analysis without scaling
+pca_human <- prcomp(human)
+
+s <- summary(pca_human)
+print(s)
+
+# rounded percentanges of variance captured by each PC
+pca_pr <- round(1*s$importance[2, ], digits = 1)
+
+# print out the percentages of variance
+print(pca_pr)
+
+# 
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2, cex = c(0.4, 0.8), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+
+```
+Result is bad, since the variables are not scaled. There is so much variance because of GNI, that the results are not good. This can be seen from the plot. Principal component 1 explains 100 % of variance. We need to scale the variables in order to have better results.
+
+```{r}
+
+# standardize the variables
+human_std <- scale(human)
+
+# print out summaries of the standardized variables
+summary(human_std)
+
+# perform principal component analysis with scaled variables
+pca_human_std <- prcomp(human_std)
+
+s2 <- summary(pca_human_std)
+print(s2)
+
+# rounded percentanges of variance captured by each PC
+pca_pr_2 <- round(1*s2$importance[2, ], digits = 2)
+
+# print out the percentages of variance
+print(pca_pr_2)
+
+# 
+pc_lab_2 <- paste0(names(pca_pr_2), " (", pca_pr_2, "%)")
+
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human_std, choices = 1:2, cex = c(0.4, 0.8), col = c("grey40", "deeppink2"), xlab = pc_lab_2[1], ylab = pc_lab_2[2], sub = "GNI, Edu.Exp, Life.Exp and Edu2.FM are highly correlated with each other and negatively correlated with Maternal Mortality and Adolescent Birth.") 
+
+```
+Now the plot and results look much better! It seems that principal component analysis 1 
+
+Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomena they relate to. (0-4 points)
+
+Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
 
 
 
+
+
+### Multiple correspondence analysis
+
+```{r, echo=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(FactoMineR)
+tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+```
+
+
+```{r}
+# column names to keep in the dataset
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+# select the 'keep_columns' to create a new dataset
+tea_time <- select(tea, keep_columns)
+
+# look at the summaries and structure of the data
+summary(tea_time)
+str(tea_time)
+
+# visualize the dataset
+library(ggplot2)
+pivot_longer(tea_time, cols = everything()) %>% 
+  ggplot(aes(value)) + facet_wrap("name", scales = "free") +
+  geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+
+
+```
+
+Explore the data briefly: look at the structure and the dimensions of the data. Use View(tea) to browse its contents, and visualize the data.
+
+```{r}
+# multiple correspondence analysis
+library(FactoMineR)
+mca <- MCA(tea_time, graph = FALSE)
+
+# summary of the model
+summary(mca)
+
+# visualize MCA
+plot(mca, invisible=c("ind"), graph.type = "classic", habillage = "quali")
+
+```
+
+Use Multiple Correspondence Analysis (MCA) on the tea data (or on just certain columns of the data, it is up to you!). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots. (0-4 points)

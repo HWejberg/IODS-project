@@ -282,7 +282,7 @@ human_ <- select(human, -Country)
 # Access GGally
 library(GGally)
 
-# visualize the 'human_' variables
+# visualize the 'human_' variablevs
 ggpairs(human_)
 
 # Access corrplot
@@ -338,7 +338,7 @@ summary(human_std)
 pca_human <- prcomp(human_std)
 
 # draw a biplot of the principal component representation and the original variables
-biplot(pca_human, choices = 1:2, cex = c(0.4, 0.8))
+biplot(pca_human, choices = 1:2, cex = c(0.4, 0.8), col = c("grey40", "deeppink2"))
 
 ```
 

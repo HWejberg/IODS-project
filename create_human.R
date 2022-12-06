@@ -27,8 +27,13 @@ human <- human[1:last, ]
 
 # I name every row with the country it is associated and remove country row
 rownames(human) <- human$Country
-human <- human[,-1]
+
+# remove the Country variable
+human <- dplyr::select(human, -Country)
+
+# Lets check that we have only 8 variables and 155 rows
+dim(human)
 
 # I write this data to human.csv so it is in the right folder right away
-write.csv(human, file = "data/human.csv")
+write.csv(human, file = "data/human.csv", row.names = TRUE)
 
