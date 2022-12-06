@@ -4,6 +4,7 @@ author: "Henrik Wejberg"
 date: "2022-12-05"
 output: html_document
 ---
+# Dimensionality reduction techniques
 
 ### Principal component analysis
 
@@ -60,7 +61,7 @@ pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
 biplot(pca_human, choices = 1:2, cex = c(0.4, 0.8), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
 
 ```
-Result is bad, since the variables are not scaled. There is so much variance because of GNI, that the results are not good. This can be seen from the plot. Principal component 1 explains 100 % of variance. We need to scale the variables in order to have better results.
+Result is bad, since the variables are not scaled. There is so much variance because of GNI, that the results are not good. This can be seen from the plot. Principal component 1 explains 100 % of variance, because the variance of GNI is much more higher than other variables. This is due to the fact that the range of GNI is much higher than other variables, which are share variables or are between human death ages in different countries. We need to scale the variables in order to have better results.
 
 ```{r}
 
@@ -89,7 +90,9 @@ pc_lab_2 <- paste0(names(pca_pr_2), " (", pca_pr_2, "%)")
 biplot(pca_human_std, choices = 1:2, cex = c(0.4, 0.8), col = c("grey40", "deeppink2"), xlab = pc_lab_2[1], ylab = pc_lab_2[2], sub = "GNI, Edu.Exp, Life.Exp and Edu2.FM are highly correlated with each other and negatively correlated with Maternal Mortality and Adolescent Birth.") 
 
 ```
-Now the plot and results look much better! It seems that principal component analysis 1 
+Now the plot and results look much better! It seems that PC1 accounts for over half the variance. In this horizontal axis, there are 6 variables which are significantly correlated with each other positively or negatively. I think that this component relates to generally the education level and GNI of the country. Good GNI requires good education and a sufficiently large labor force, which requires that females also work outside of home. If people have good education, high income and therefore high life expectancy on birth, it is highly unlikely that there is maternal mortality to significant degree or adolescent births. The countries in the right side of this PC1 seem to be African countries and to the left mostly "Western" countries. 
+
+Second PC relates to females participation in parliaments and work outside of home. Nordic countries and Northern European countries rank highly on these, while Middle East countries have significantly different results. If we would like to have less variables or indexes, we could have a variable related maybe to GNI and to life expectancy and education and another one for females participation in work and democratic processes. 
 
 Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomena they relate to. (0-4 points)
 
@@ -115,7 +118,7 @@ tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open
 keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
 
 # select the 'keep_columns' to create a new dataset
-tea_time <- select(tea, keep_columns)
+tea_time <- dplyr::select(tea, keep_columns)
 
 # look at the summaries and structure of the data
 summary(tea_time)
@@ -134,7 +137,6 @@ Explore the data briefly: look at the structure and the dimensions of the data. 
 
 ```{r}
 # multiple correspondence analysis
-library(FactoMineR)
 mca <- MCA(tea_time, graph = FALSE)
 
 # summary of the model
