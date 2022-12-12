@@ -1,0 +1,192 @@
+---
+title: "chapter6.Rmd"
+author: "Henrik Wejberg"
+date: "2022-12-12"
+output: html_document
+---
+
+# Analysis of longitudal data
+
+### How rats gain weight with different diets
+
+In this sub chapter, we analyse how rats have gained weight with different diets. Firstly, we download the correct data and factorise ID and group for further analysis.
+
+```{r}
+library(tidyverse)
+library(lme4)
+
+RATS <- read.csv("data/RATS")
+RATSL <- read.csv("data/RATSL")
+RATSL$ID <- factor(RATSL$ID)
+RATSL$Group <- factor(RATSL$Group)
+```
+
+I visualize the weight gain by all rats and divide them to groups and also change the line type to differ every rat from each other. From the graph, we can clearly see that group 2 and 3 differ from group 1 because the rats in former groups are much heavier right from the beginning. This could indicate that the sampling has failed, since the heavier rats are concentrated to other groups than group 1. In order for us to know if the diet really matters, we should standardize the weight results and try again. 
+
+```{r}
+ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none")
+```
+
+But before that, we still make one nice visualization to see the differences between groups as time passes. From this plot, it is quite easy to see that groups 2 and 3 start of with way higher weights compared to group 1. 
+```{r}
+
+# 16 rats is tested
+n = 16
+
+RATSS <- RATSL %>%
+  group_by(Group, Time) %>%
+  summarise( mean = mean(Weight), se = (sd(Weight) / sqrt(length(n)))) %>%
+  ungroup()
+
+ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+  scale_y_continuous(name = "mean(bprs) +/- se(bprs)")
+
+```
+
+After standardizing the weight variable, we can clearly see that the diets do not affect rat weight grow rates much. Most variance regarding direction is in group 2, where couple rats grow but some have much less growth than the mean weight growth during the test. It seems based on these visualizations that all rats grow during the test time, but the diet does not affect the growth rates but the rats differences on starting weight. If two rats grow relatively with same speed, the larger rat will of course grow more in absolute terms. 
+```{r}
+RATSL <- RATSL %>%
+  group_by(Time) %>%
+  mutate(stdRATS = scale(Weight)) %>%
+  ungroup()
+
+ggplot(RATSL, aes(x = Time, y = stdRATS, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none")
+```
+
+Lets still test whether the groups weight growth differ significantly, although it looks unlikely based on the visualizations. I test whether the group effect on weight gain is statistically significant. The F values are sufficiently high to say that group affects the weight of the rats. 
+
+```{r}
+res.aov <- aov(Weight ~ Group, data = RATSL)
+summary(res.aov)
+
+RATSL <- rename(RATSL, Standardised = starts_with("std")) 
+res.aov1 <- aov(Standardised ~ Group, data = RATSL)
+summary(res.aov1)
+
+```
+However, the previous test was done with a significant outlier present in the data in group 2. We will remove that and see visually how the means change.
+
+
+```{r}
+ggplot(RATSS, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean weight by diet groups")
+
+# Remove the outlier
+RATSminus <- filter(RATSL, !ID == 12) |> group_by(Group, Time) %>%
+  summarise( mean = mean(Weight), se = (sd(Weight) / sqrt(length(n)))) %>%
+  ungroup()
+
+# Draw a boxplot of the mean versus treatment
+ggplot(RATSminus, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean weight by diet groups")
+
+```
+Removing the outlier greatly increases the distance between group 2 and group 3. This could indicate that diet 3 is actually best for weight growth in rats, but we cannot be for sure until we do some more statistical tests. 
+
+```{r}
+res.aov2 <- aov(mean ~ Group, data = RATSminus)
+summary(res.aov2)
+
+RATSL <- rename(RATSL, Standardised = starts_with("std")) 
+res.aov1 <- aov(Standardised ~ Group, data = RATSL)
+summary(res.aov1)
+
+```
+
+
+```{r}
+
+# Add the baseline from the original data as a new variable to the summary data
+RATSfinal <-  RATS %>% mutate(baseline = RATS$WD1) %>% pivot_longer(RATS, cols=-c(ID,Group), names_to = "WD",values_to = "Weight")  %>%  mutate(Time = as.integer(substr(WD,3,4))) %>% arrange(Time)
+
+sumratdata <- RATS %>% group_by(Group) %>% summarise(baseline_mean = mean(WD1))
+
+RATSfinal <- RATSS %>% group_by(Group) %>% summarise(mean = mean(mean)) %>% mutate(baseline = sumratdata$baseline_mean)
+  
+# Fit the linear model with the mean as the response 
+fit <- lm(mean ~ baseline + Group, data = RATSfinal)
+summary(fit)
+# Compute the analysis of variance table for the fitted model with anova()
+
+
+```
+
+The statistical results are not working. I have to think how to do this correctly. 
+
+
+
+
+```{r}
+
+BPRS <- read.csv("data/BPRS")
+BPRSL <- read.csv("data/BPRSL")
+BPRSL$treatment <- factor(BPRSL$treatment)
+BPRSL$subject <- factor(BPRSL$subject)
+
+```
+
+```{r}
+
+```
+
+```{r}
+ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both)
+
+BPRSL_reg <- lm(bprs ~ week + treatment, BPRSL)
+summary(BPRSL_reg)
+
+```
+
+
+```{r}
+
+# access library lme4
+library(lme4)
+
+# Create a random intercept model
+BPRSL_ref <- lmer(bprs ~ week + treatment + (1 | subject), data = BPRSL, REML = FALSE)
+
+# Print the summary of the model
+summary(BPRSL_ref)
+
+# Another analysis
+BPRSL_ref1 <- lmer(bprs ~ week + treatment + (week | subject), data = BPRSL, REML = FALSE)
+
+# print a summary of the model
+summary(BPRSL_ref1)
+
+# perform an ANOVA test on the two models
+anova(BPRSL_ref1, BPRSL_ref)
+
+# create a random intercept and random slope model with the interaction
+BPRSL_ref2 <- lmer(bprs ~ week + treatment + week * treatment + (week | subject), data = BPRSL, REML = FALSE)
+
+# print a summary of the model
+summary(BPRSL_ref2)
+
+# perform an ANOVA test on the two models
+anova(BPRSL_ref2, BPRSL_ref1)
+
+```
+
+
