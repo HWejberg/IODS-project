@@ -7,7 +7,7 @@ output: html_document
 
 # Analysis of longitudal data
 
-### How rats gain weight with different diets
+## How rats gain weight with different diets
 
 In this sub chapter, we analyse how rats have gained weight with different diets. Firstly, we download the correct data and factorise ID and group for further analysis.
 
@@ -79,7 +79,6 @@ summary(res.aov1)
 ```
 However, the previous test was done with a significant outlier present in the data in group 2. We will remove that and see visually how the means change.
 
-
 ```{r}
 ggplot(RATSS, aes(x = Group, y = mean)) +
   geom_boxplot() +
@@ -98,20 +97,9 @@ ggplot(RATSminus, aes(x = Group, y = mean)) +
   scale_y_continuous(name = "mean weight by diet groups")
 
 ```
-Removing the outlier greatly increases the distance between group 2 and group 3. This could indicate that diet 3 is actually best for weight growth in rats, but we cannot be for sure until we do some more statistical tests. 
+Removing the outlier greatly increases the distance between group 2 and group 3. This could indicate that diet 3 is actually best for weight growth in rats. I do not know what statistical test I should conduct to test, so I will leave my analysis here. 
 
-```{r}
-res.aov2 <- aov(mean ~ Group, data = RATSminus)
-summary(res.aov2)
-
-RATSL <- rename(RATSL, Standardised = starts_with("std")) 
-res.aov1 <- aov(Standardised ~ Group, data = RATSL)
-summary(res.aov1)
-
-```
-
-
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 # Add the baseline from the original data as a new variable to the summary data
 RATSfinal <-  RATS %>% mutate(baseline = RATS$WD1) %>% pivot_longer(RATS, cols=-c(ID,Group), names_to = "WD",values_to = "Weight")  %>%  mutate(Time = as.integer(substr(WD,3,4))) %>% arrange(Time)
@@ -128,11 +116,10 @@ summary(fit)
 
 ```
 
-The statistical results are not working. I have to think how to do this correctly. 
 
+## Modeling whether treatment affects brief psychiatric rating scale
 
-
-
+Lets download and factorise the data. 
 ```{r}
 
 BPRS <- read.csv("data/BPRS")
@@ -142,9 +129,7 @@ BPRSL$subject <- factor(BPRSL$subject)
 
 ```
 
-```{r}
-
-```
+Lets make a nice plot showing how both treatment groups bprs changes in time. Both groups seem to go down. But treatment is not statistically significant in the model we test. We must therefore try other models as well. 
 
 ```{r}
 ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
@@ -156,28 +141,34 @@ BPRSL_reg <- lm(bprs ~ week + treatment, BPRSL)
 summary(BPRSL_reg)
 
 ```
-
+I do an random intercept model. Treatment t value is still very small. Lets do another model to see if the AIC criterion improves. 
 
 ```{r}
-
-# access library lme4
-library(lme4)
-
-# Create a random intercept model
+# Random intercept model
 BPRSL_ref <- lmer(bprs ~ week + treatment + (1 | subject), data = BPRSL, REML = FALSE)
 
 # Print the summary of the model
 summary(BPRSL_ref)
+```
 
+The AIC criterion improves meagerly; only 3 points. 
+
+```{r}
 # Another analysis
 BPRSL_ref1 <- lmer(bprs ~ week + treatment + (week | subject), data = BPRSL, REML = FALSE)
 
 # print a summary of the model
 summary(BPRSL_ref1)
+```
 
+
+```{r}
 # perform an ANOVA test on the two models
 anova(BPRSL_ref1, BPRSL_ref)
+```
+However, through anova we see that there is a significant difference between the models, although the p-value is still low. Lets try with one last model. The last model we test does not improve significantly from the previous model. AIC improves only one point. All in all, it seems that the treatment does not affect bprs scores.
 
+```{r}
 # create a random intercept and random slope model with the interaction
 BPRSL_ref2 <- lmer(bprs ~ week + treatment + week * treatment + (week | subject), data = BPRSL, REML = FALSE)
 
